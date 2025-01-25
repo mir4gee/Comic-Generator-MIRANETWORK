@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comic Prompt Generator</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    .drop-zone {
+      border: 2px dashed #28b67e;
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      transition: background-color 0.3s, border-color 0.3s;
+      background-color: #0d1321;
+      color: white;
+    }
+    .drop-zone:hover {
+      background-color: #28b67e;
+      border-color: white;
+      color: #0d1321;
+    }
+    body {
+      background-color: #0d1321;
+      color: white;
+    }
+    .card {
+      background-color: #0d1321;
+      border: 1px solid #28b67e;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    }
+    input {
+      background-color: #0d1321;
+      border: 1px solid #28b67e;
+      color: white;
+    }
+    input:focus {
+      border-color: #28b67e;
+      outline: none;
+      box-shadow: 0 0 5px #28b67e;
+    }
+    button {
+      background-color: #28b67e;
+      color: #0d1321;
+      font-weight: bold;
+    }
+    button:hover {
+      background-color: white;
+      color: #28b67e;
+    }
+    #output-text {
+      background-color: #0d1321;
+      border: 1px solid #28b67e;
+      color: white;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+  <div class="container max-w-lg mx-auto shadow-lg rounded-lg p-6 card">
+    <h1 class="text-3xl font-bold mb-6 text-center">Comic Prompt Generator</h1>
+
+    <!-- Drop zone for extracting text -->
+    <div id="drop-zone" class="drop-zone">
+      <p class="text-lg">Drag & Drop your image here or click to upload</p>
+      <input id="file-input" type="file" accept="image/*" class="hidden">
+    </div>
+
+    <!-- Personality 1 image upload -->
+    <div class="mt-6">
+      <label for="personality1-file" class="block font-semibold">Upload Personality 1 Image:</label>
+      <input type="file" id="personality1-file" accept="image/*" class="w-full rounded-lg p-3 mt-1">
+    </div>
+
+    <!-- Personality 2 image upload -->
+    <div class="mt-6">
+      <label for="personality2-file" class="block font-semibold">Upload Personality 2 Image:</label>
+      <input type="file" id="personality2-file" accept="image/*" class="w-full rounded-lg p-3 mt-1">
+    </div>
+
+    <!-- Input for situation -->
+    <div class="mt-6">
+      <label for="situation" class="block font-semibold">Situation:</label>
+      <input type="text" id="situation" class="w-full rounded-lg p-3 mt-1" placeholder="Enter situation here..." required>
+    </div>
+
+    <!-- Generate prompt button -->
+    <button id="upload-btn" class="py-3 px-4 rounded-lg mt-6 w-full">Generate Prompt</button>
+    <p id="output-text" class="mt-6 text-sm hidden p-4 rounded-lg"></p>
+  </div>
+
+  <script>
+    const API_KEY_VISION = 'AIzaSyDezPi3S1zJH1H3kopflG8KalBiDe_3f-0'; // Replace with your Google Vision API key
+    const API_KEY_MIRA = 'sb-9c307773dcea9649fb947457ba4d23c9'; // Replace w
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const uploadBtn = document.getElementById('upload-btn');
+    const outputText = document.getElementById('output-text');
+
+    let extractedText = '';
+    let personality1Description = 'eufiueghfhhgfeuih';
+    let personality2Description = 'ajhefbebgfuifui';
+
+    // Drop zone handling
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.style.backgroundColor = '#28b67e';
+      dropZone.style.color = '#0d1321';
+    });
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.style.backgroundColor = '#0d1321';
+      dropZone.style.color = 'white';
+    });
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.style.backgroundColor = '#0d1321';
+      dropZone.style.color = 'white';
+      const file = e.dataTransfer.files[0];
+      if (file) processImage(file);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) processImage(file);
+    });
+
+    async function processImage(file) {
+      const reader = new FileReader();
+      reader.onload = async function (event) {
+        const imageData = event.target.result;
+
+        try {
+          outputText.classList.remove('hidden');
+          outputText.textContent = 'Extracting text from image...';
+
+          const response = await fetch(
+            https://vision.googleapis.com/v1/images:annotate?key=${API_KEY_VISION},
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                requests: [
+                  {
+                    image: { content: imageData.split(',')[1] },
+                    features: [{ type: 'TEXT_DETECTION', maxResults: 1 }],
+                  },
+                ],
+              }),
+            }
+          );
+
+          const result = await response.json();
+          extractedText = result.responses[0]?.fullTextAnnotation?.text || 'No text found.';
+          outputText.textContent = Extracted Text:\n${extractedText};
+        } catch (error) {
+          outputText.textContent = 'Error extracting text from image.';
+          console.error(error);
+        }
+      };
+
+      reader.readAsDataURL(file);
+    }
+
+
+    async function processPersonalityImage(file, personality) {
+      const reader = new FileReader();
+      reader.onload = async function () {
+        try {
+          const formData = new FormData();
+          formData.append("file", file);
+    
+          const response = await fetch("http://127.0.0.1:8000/process_image", {
+            method: "POST",
+            body: formData,
+          });
+    
+          if (!response.ok) {
+            throw new Error(Server error: ${response.statusText});
+          }
+    
+          const result = await response.json();
+          if (result.description) {
+            if (personality === 1) {
+              personality1Description = result.description;
+            } else if (personality === 2) {
+              personality2Description = result.description;
+            }
+            console.log(Personality ${personality} description:, result.description);
+          } else {
+            throw new Error(No description returned.);
+          }
+        } catch (error) {
+          console.error(Error processing Personality ${personality} image:, error.message);
+        }
+      };
+    
+      reader.readAsDataURL(file);
+    }
+    const personality1FileInput = document.getElementById("personality1-file");
+    const personality2FileInput = document.getElementById("personality2-file");
+    let file; // Declare file for Personality 1
+    let file2; // Declare file2 for Personality 2
+    
+    // Handle file input for Personality 1
+    personality1FileInput.addEventListener("change", (e) => {
+      e.preventDefault(); // Prevent default behavior (though not strictly necessary for change)
+      file = e.target.files[0];
+      console.log("Personality 1 file selected:", file);
+    });
+    
+    // Handle file input for Personality 2
+    personality2FileInput.addEventListener("change", (e) => {
+      e.preventDefault();
+      file2 = e.target.files[0];
+      console.log("Personality 2 file selected:", file2);
+    });
+    
+    uploadBtn.addEventListener("click", async () => {
+      const situation = document.getElementById("situation").value;
+
+      if (!situation || !file || !file2) {
+        alert("Please fill all fields and upload images for both personalities.");
+        return;
+      }    
+
+      try {
+        outputText.textContent = "Processing images and generating comic prompt...";
+        outputText.classList.remove("hidden");
+
+        // Process both personality images
+
+        if (!personality1Description || !personality2Description) {
+          throw new Error("Failed to process one or both personality images.");
+        }
+
+        // Generate comic prompt
+        const response = await fetch(
+          https://flow-api.mira.network/v1/flows/flows/phoenix22/comicpromptgenerator?version=1.0.0,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              miraauthorization: API_KEY_MIRA,
+            },
+            body: JSON.stringify({
+              input: {
+                situation: situation,
+                "personality 1": personality1Description,
+                "personality 2": personality2Description,
+                "conversation text": extractedText,
+              },
+            }),
+          }
+        );
+
+        const result = await response.json();
+        outputText.textContent = Generated Comic Prompt:\n${JSON.stringify(result, null, 2)};
+      } catch (error) {
+        outputText.textContent = "Error generating comic prompt.";
+        console.error(error);
+      }
+    });
+  </script>
+</body>
+</html>

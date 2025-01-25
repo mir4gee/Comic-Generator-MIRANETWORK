@@ -1,0 +1,551 @@
+# Flow specification version
+version: "0.1.0"                                    # Flow specification version
+
+metadata:
+  flow_type: "compound"                             # Specifies this as a compound flow
+  name: "add-three-numbers"                         # Unique identifier
+  description: "A flow to add three numbers together"
+  author: "mir4ge"                           # Your Mira Flows username
+  tags: ["tag1"]                    # Discovery keywords
+  private: true                                      # Access control setting
+
+inputs:
+  charactar1_emotion:
+    type: string
+    description: "Character's emotion"
+    required: false
+    example: "neutral"
+  charactar1_age:
+    type: integer
+    description: "Character's age"
+    required: false
+    example: "27"
+  charactar1_gender:
+    type: string
+    description: "Character's gender"
+    required: false
+    example: "Man"
+  charactar1_hair_color:
+    type: string
+    description: "Character's hair color"
+    required: false
+    example: "red"
+  charactar1_hairstyle:
+    type: string
+    description: "Character's hairstyle"
+    required: false
+    example: "wavy"
+  charactar1_face_shape:
+    type: string
+    description: "Character's face shape"
+    required: false
+    example: "round"
+  charactar1_eyes:
+    type: string
+    description: "Character's eye type"
+    required: false
+    example: "almond"
+  charactar1_nose:
+    type: string
+    description: "Character's nose type"
+    required: false
+    example: "long"
+  charactar1_lips:
+    type: string
+    description: "Character's lip type"
+    required: false
+    example: "thin"
+  charactar1_ears:
+    type: string
+    description: "Character's ear visibility"
+    required: false
+    example: "visible"
+  charactar1_forehead:
+    type: string
+    description: "Character's forehead type"
+    required: false
+    example: "broad"
+  charactar1_neck:
+    type: string
+    description: "Character's neck type"
+    required: false
+    example: "average-length"
+  charactar1_jawline_length:
+    type: string
+    description: "Character's jawline length"
+    required: false
+    example: "247.48737341529164"
+  charactar1_cheekbone_width:
+    type: string
+    description: "Character's cheekbone width"
+    required: false
+    example: "244.37675830569486"
+  charactar1_mouth_width:
+    type: string
+    description: "Character's mouth width"
+    required: false
+    example: "94.36630754670864"
+  charactar1_nose_width:
+    type: string
+    description: "Character's nose width"
+    required: false
+    example: "56.568542494923804"
+  charactar1_nose_length:
+    type: string
+    description: "Character's nose length"
+    required: false
+    example: "4.52516353554684"
+  charactar1_chin_type:
+    type: string
+    description: "Character's chin type"
+    required: false
+    example: "pointed"
+  charactar1_lip_fullness:
+    type: string
+    description: "Character's lip fullness"
+    required: false
+    example: "thin"
+  charactar1_lip_shape:
+    type: string
+    description: "Character's lip shape"
+    required: false
+    example: "bow-shaped"
+  charactar1_teeth_visibility:
+    type: string
+    description: "Visibility of character's teeth"
+    required: false
+    example: "not visible"
+  charactar1_eye_distance:
+    type: string
+    description: "Distance between character's eyes"
+    required: false
+    example: "153.39491516996253"
+  charactar1_eye_shape:
+    type: string
+    description: "Character's eye shape"
+    required: false
+    example: "round"
+  charactar1_eye_size:
+    type: string
+    description: "Character's eye size"
+    required: false
+    example: "large"
+  charactar1_eyebrow_position:
+    type: string
+    description: "Character's eyebrow position"
+    required: false
+    example: "low"
+  charactar1_eyebrow_shape:
+    type: string
+    description: "Character's eyebrow shape"
+    required: false
+    example: "arched"
+  charactar1_forehead_height:
+    type: string
+    description: "Character's forehead height"
+    required: false
+    example: "low"
+  charactar1_skin_tone:
+    type: string
+    description: "Character's skin tone"
+    required: false
+    example: "dark"
+  charactar1_skin_texture:
+    type: string
+    description: "Character's skin texture"
+    required: false
+    example: "smooth"
+  charactar1_freckles:
+    type: string
+    description: "Presence of freckles on the character"
+    required: false
+    example: "many"
+  charactar1_moles:
+    type: string
+    description: "Presence of moles on the character"
+    required: false
+    example: "none"
+
+
+
+
+  charactar2_emotion:
+    type: string
+    description: "Character's emotion"
+    required: false
+    example: "neutral"
+  charactar2_age:
+    type: integer
+    description: "Character's age"
+    required: false
+    example: "27"
+  charactar2_gender:
+    type: string
+    description: "Character's gender"
+    required: false
+    example: "Man"
+  charactar2_hair_color:
+    type: string
+    description: "Character's hair color"
+    required: false
+    example: "red"
+  charactar2_hairstyle:
+    type: string
+    description: "Character's hairstyle"
+    required: false
+    example: "wavy"
+  charactar2_face_shape:
+    type: string
+    description: "Character's face shape"
+    required: false
+    example: "round"
+  charactar2_eyes:
+    type: string
+    description: "Character's eye type"
+    required: false
+    example: "almond"
+  charactar2_nose:
+    type: string
+    description: "Character's nose type"
+    required: false
+    example: "long"
+  charactar2_lips:
+    type: string
+    description: "Character's lip type"
+    required: false
+    example: "thin"
+  charactar2_ears:
+    type: string
+    description: "Character's ear visibility"
+    required: false
+    example: "visible"
+  charactar2_forehead:
+    type: string
+    description: "Character's forehead type"
+    required: false
+    example: "broad"
+  charactar2_neck:
+    type: string
+    description: "Character's neck type"
+    required: false
+    example: "average-length"
+  charactar2_jawline_length:
+    type: string
+    description: "Character's jawline length"
+    required: false
+    example: "247.48737341529164"
+  charactar2_cheekbone_width:
+    type: string
+    description: "Character's cheekbone width"
+    required: false
+    example: "244.37675830569486"
+  charactar2_mouth_width:
+    type: string
+    description: "Character's mouth width"
+    required: false
+    example: "94.36630754670864"
+  charactar2_nose_width:
+    type: string
+    description: "Character's nose width"
+    required: false
+    example: "56.568542494923804"
+  charactar2_nose_length:
+    type: string
+    description: "Character's nose length"
+    required: false
+    example: "74.52516353554684"
+  charactar2_chin_type:
+    type: string
+    description: "Character's chin type"
+    required: false
+    example: "pointed"
+  charactar2_lip_fullness:
+    type: string
+    description: "Character's lip fullness"
+    required: false
+    example: "thin"
+  charactar2_lip_shape:
+    type: string
+    description: "Character's lip shape"
+    required: false
+    example: "bow-shaped"
+  charactar2_teeth_visibility:
+    type: string
+    description: "Visibility of character's teeth"
+    required: false
+    example: "not visible"
+  charactar2_eye_distance:
+    type: string
+    description: "Distance between character's eyes"
+    required: false
+    example: "53.39491516996253"
+  charactar2_eye_shape:
+    type: string
+    description: "Character's eye shape"
+    required: false
+    example: "round"
+  charactar2_eye_size:
+    type: string
+    description: "Character's eye size"
+    required: false
+    example: "large"
+  charactar2_eyebrow_position:
+    type: string
+    description: "Character's eyebrow position"
+    required: false
+    example: "low"
+  charactar2_eyebrow_shape:
+    type: string
+    description: "Character's eyebrow shape"
+    required: false
+    example: "arched"
+  charactar2_forehead_height:
+    type: string
+    description: "Character's forehead height"
+    required: false
+    example: "low"
+  charactar2_skin_tone:
+    type: string
+    description: "Character's skin tone"
+    required: false
+    example: "dark"
+  charactar2_skin_texture:
+    type: string
+    description: "Character's skin texture"
+    required: false
+    example: "smooth"
+  charactar2_freckles:
+    type: string
+    description: "Presence of freckles on the character"
+    required: false
+    example: "many"
+  charactar2_moles:
+    type: string
+    description: "Presence of moles on the character"
+    required: false
+    example: "none"
+
+
+
+
+
+
+
+
+
+
+  
+  conversation:
+    type: string
+    description: "Conversation text"
+    required: false
+    example: "Hello"
+
+workflow:
+
+  first_flow:                                 
+    type: "custom"
+    inputs:
+      emotion: ${inputs.charactar1_emotion}
+      age: ${inputs.charactar1_age}
+      gender: ${inputs.charactar1_gender}
+      hair_color: ${inputs.charactar1_hair_color}
+      hairstyle: ${inputs.charactar1_hairstyle}
+      face_shape: ${inputs.charactar1_face_shape}
+      eyes: ${inputs.charactar1_eyes}
+      nose: ${inputs.charactar1_nose}
+      lips: ${inputs.charactar1_lips}
+      ears: ${inputs.charactar1_ears}
+      forehead: ${inputs.charactar1_forehead}
+      neck: ${inputs.charactar1_neck}
+      jawline_length: ${inputs.charactar1_jawline_length}
+      cheekbone_width: ${inputs.charactar1_cheekbone_width}
+      mouth_width: ${inputs.charactar1_mouth_width}
+      nose_width: ${inputs.charactar1_nose_width}
+      nose_length: ${inputs.charactar1_nose_length}
+      chin_type: ${inputs.charactar1_chin_type}
+      lip_fullness: ${inputs.charactar1_lip_fullness}
+      lip_shape: ${inputs.charactar1_lip_shape}
+      teeth_visibility: ${inputs.charactar1_teeth_visibility}
+      eye_distance: ${inputs.charactar1_eye_distance}
+      eye_shape: ${inputs.charactar1_eye_shape}
+      eye_size: ${inputs.charactar1_eye_size}
+      eyebrow_position: ${inputs.charactar1_eyebrow_position}
+      eyebrow_shape: ${inputs.charactar1_eyebrow_shape}
+      forehead_height: ${inputs.charactar1_forehead_height}
+      skin_tone: ${inputs.charactar1_skin_tone}
+      skin_texture: ${inputs.charactar1_skin_texture}
+      freckles: ${inputs.charactar1_freckles}
+      moles: ${inputs.charactar1_moles} 
+    model:
+      provider: "anthropic" # e.g., anthropic, openai, meta, etc.
+      name: "claude-3.5-sonnet"
+
+    prompt: |
+      Using the following characteristics of the character, give a paragraph that can be used in the MidJourney app to create a comic-style image. Include all relevant details while maintaining conciseness and clarity:
+        - Emotion: {emotion}
+        - Age: {age}
+        - Gender: {gender}
+        - Hair Color: {hair_color}
+        - Hairstyle: {hairstyle}
+        - Face Shape: {face_shape}
+        - Eyes: {eyes}
+        - Nose: {nose}
+        - Lips: {lips}
+        - Ears: {ears}
+        - Forehead: {forehead}
+        - Neck: {neck}
+        - Jawline Length: {jawline_length}
+        - Cheekbone Width: {cheekbone_width}
+        - Mouth Width: {mouth_width}
+        - Nose Width: {nose_width}
+        - Nose Length: {nose_length}
+        - Chin Type: {chin_type}
+        - Lip Fullness: {lip_fullness}
+        - Lip Shape: {lip_shape}
+        - Teeth Visibility: {teeth_visibility}
+        - Eye Distance: {eye_distance}
+        - Eye Shape: {eye_shape}
+        - Eye Size: {eye_size}
+        - Eyebrow Position: {eyebrow_position}
+        - Eyebrow Shape: {eyebrow_shape}
+        - Forehead Height: {forehead_height}
+        - Skin Tone: {skin_tone}
+        - Skin Texture: {skin_texture}
+        - Freckles: {freckles}
+        - Moles: {moles}
+
+
+
+
+
+  second_flow:                                 
+    type: "custom"
+    inputs:
+      emotion: ${inputs.charactar2_emotion}
+      age: ${inputs.charactar2_age}
+      gender: ${inputs.charactar2_gender}
+      hair_color: ${inputs.charactar2_hair_color}
+      hairstyle: ${inputs.charactar2_hairstyle}
+      face_shape: ${inputs.charactar2_face_shape}
+      eyes: ${inputs.charactar2_eyes}
+      nose: ${inputs.charactar2_nose}
+      lips: ${inputs.charactar2_lips}
+      ears: ${inputs.charactar2_ears}
+      forehead: ${inputs.charactar2_forehead}
+      neck: ${inputs.charactar2_neck}
+      jawline_length: ${inputs.charactar2_jawline_length}
+      cheekbone_width: ${inputs.charactar2_cheekbone_width}
+      mouth_width: ${inputs.charactar2_mouth_width}
+      nose_width: ${inputs.charactar2_nose_width}
+      nose_length: ${inputs.charactar2_nose_length}
+      chin_type: ${inputs.charactar2_chin_type}
+      lip_fullness: ${inputs.charactar2_lip_fullness}
+      lip_shape: ${inputs.charactar2_lip_shape}
+      teeth_visibility: ${inputs.charactar2_teeth_visibility}
+      eye_distance: ${inputs.charactar2_eye_distance}
+      eye_shape: ${inputs.charactar2_eye_shape}
+      eye_size: ${inputs.charactar2_eye_size}
+      eyebrow_position: ${inputs.charactar2_eyebrow_position}
+      eyebrow_shape: ${inputs.charactar2_eyebrow_shape}
+      forehead_height: ${inputs.charactar2_forehead_height}
+      skin_tone: ${inputs.charactar2_skin_tone}
+      skin_texture: ${inputs.charactar2_skin_texture}
+      freckles: ${inputs.charactar2_freckles}
+      moles: ${inputs.charactar2_moles}
+    model:
+      provider: "anthropic" # e.g., anthropic, openai, meta, etc.
+      name: "claude-3.5-sonnet"
+
+    prompt: |
+      Using the following characteristics of the character, give a paragraph that can be used in the MidJourney app to create a comic-style image. Include all relevant details while maintaining conciseness and clarity:
+        - Emotion: {emotion}
+        - Age: {age}
+        - Gender: {gender}
+        - Hair Color: {hair_color}
+        - Hairstyle: {hairstyle}
+        - Face Shape: {face_shape}
+        - Eyes: {eyes}
+        - Nose: {nose}
+        - Lips: {lips}
+        - Ears: {ears}
+        - Forehead: {forehead}
+        - Neck: {neck}
+        - Jawline Length: {jawline_length}
+        - Cheekbone Width: {cheekbone_width}
+        - Mouth Width: {mouth_width}
+        - Nose Width: {nose_width}
+        - Nose Length: {nose_length}
+        - Chin Type: {chin_type}
+        - Lip Fullness: {lip_fullness}
+        - Lip Shape: {lip_shape}
+        - Teeth Visibility: {teeth_visibility}
+        - Eye Distance: {eye_distance}
+        - Eye Shape: {eye_shape}
+        - Eye Size: {eye_size}
+        - Eyebrow Position: {eyebrow_position}
+        - Eyebrow Shape: {eyebrow_shape}
+        - Forehead Height: {forehead_height}
+        - Skin Tone: {skin_tone}
+        - Skin Texture: {skin_texture}
+        - Freckles: {freckles}
+        - Moles: {moles}
+
+
+
+      Also give it format of json type 
+      result_second_flow
+      
+
+
+  third_flow:                                       
+    type: "custom"
+    depends_on: [first_flow, second_flow]  # Dependent on first_flow and second_flow
+    inputs:
+      character_1: ${first_flow.output}  # uses character 1 description from first_flow
+      character_2: ${second_flow.output}  # uses character 2 description from second_flow
+      conversation: ${inputs.conversation}  # uses the conversation between the characters
+
+    model:
+      provider: "anthropic" # e.g., anthropic, openai, meta, etc.
+      name: "claude-3.5-sonnet"
+  
+    prompt: |
+      Using the following characteristics of the character, generate a prompt that can be used in the MidJourney app to create a comic-style image. Include all relevant details while maintaining conciseness and clarity. Characteristics: :
+      Make sure these descriptions and conversations are visible in the comic scenes
+      **Character 1 Description:**  
+      {character_1}
+      
+      **Character 2 Description:**  
+      {character_2}
+      
+      First decribe both these character and then put th econversation in different pan
+      
+        The conversation is represented in comic-style text boxes:
+        {conversation}
+
+        The overall tone is lively and humorous, with vibrant colors and dynamic character poses matching a Marvel comic aesthetic.
+
+        generate the image with speech bubbles and match the comic style
+
+
+
+
+
+
+      **Comic Layout:**  
+      1. **Panel 1:** Introduce Character 1 and Character 2 in a dynamic scene setting that reflects their personality and environment.  
+      2. **Panel 2:** Highlight their first interaction or reaction to each other.  
+      3. **Panel 3:** Show a key moment in their conversation or an emotional highlight.  
+      4. **Panel 4:** Conclude with a dramatic or humorous ending to the scene.  
+      
+      Ensure bold linework, vibrant colors, and expressive poses for both characters. Use lighting and composition to enhance their emotions and relationship dynamics.
+
+output:
+  value:                                         # Final output
+    - ${first_flow.output}
+    - ${second_flow.output}
+    - ${third_flow.output}
+
+readme: |
+  Some readme docs for custom flows
