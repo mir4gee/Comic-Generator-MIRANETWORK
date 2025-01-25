@@ -56,6 +56,14 @@ In the fast-paced digital communication era, hilarious, spontaneous moments ofte
 - FLUX model creates comic-style image
 - Transforms text into visual storytelling
 
+## App Outputs
+
+### Output 1: Example of Generated Result
+![Generated Output 1](https://github.com/mir4gee/Comic-Generator-MIRANETWORK/blob/main/WhatsApp%20Image%202025-01-25%20at%209.16.22%20PM.jpeg)
+
+### Output 2: Another Example of Generated Result
+![Generated Output 2](https://github.com/mir4gee/Comic-Generator-MIRANETWORK/blob/main/WhatsApp%20Image%202025-01-25%20at%209.28.36%20PM.jpeg)
+
 ## Use Cases
 
 ### 1. Memory Preservation
