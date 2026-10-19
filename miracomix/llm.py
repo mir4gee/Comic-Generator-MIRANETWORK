@@ -2,13 +2,19 @@
 
 Same two-stage shape as the original Mira flow (per-character flows, then a merge step).
 """
-import base64
+import logging
 import os
 
+import httpx
 from google import genai
+from google.genai import errors, types
 from pydantic import BaseModel
 
-MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.8-flash")
+log = logging.getLogger(__name__)
+
+# Tried in order: free-tier Flash models are often briefly overloaded (503) or rate limited (429).
+MODELS = os.environ.get("GEMINI_MODELS", "gemini-3.5-flash,gemini-3.5-flash-lite,gemini-3.8-flash").split(",")
+TIMEOUT_MS = 30_000
 
 
 class Character(BaseModel):
@@ -51,28 +57,35 @@ SCRIPT_PROMPT = (
 )
 
 
-def _image_part(jpeg_bytes):
-    return {"type": "image", "data": base64.b64encode(jpeg_bytes).decode(), "mime_type": "image/jpeg"}
+def _retryable(exc):
+    if isinstance(exc, errors.ServerError) or isinstance(exc, httpx.TimeoutException):
+        return True
+    return isinstance(exc, errors.ClientError) and exc.code == 429
 
 
 def _ask(client, parts, schema):
-    interaction = client.interactions.create(
-        model=MODEL,
-        input=parts,
-        response_format={"type": "text", "mime_type": "application/json", "schema": schema.model_json_schema()},
-        store=False,
-    )
-    return schema.model_validate_json(interaction.output_text)
+    config = types.GenerateContentConfig(response_mime_type="application/json", response_schema=schema)
+    for i, model in enumerate(MODELS):
+        try:
+            resp = client.models.generate_content(model=model, contents=parts, config=config)
+        except Exception as exc:
+            if not _retryable(exc) or i == len(MODELS) - 1:
+                raise
+            log.warning("Gemini %s unavailable (%s), trying %s", model, type(exc).__name__, MODELS[i + 1])
+            continue
+        if resp.parsed is None:
+            raise ValueError(f"{model} returned no parseable JSON")
+        return resp.parsed
 
 
 def make_client():
-    return genai.Client()  # reads GEMINI_API_KEY
+    return genai.Client(http_options=types.HttpOptions(timeout=TIMEOUT_MS))  # reads GEMINI_API_KEY
 
 
 def describe_character(client, name, photo=None, notes=""):
-    parts = [{"type": "text", "text": CHARACTER_PROMPT.format(name=name, notes=notes or "none")}]
+    parts = [CHARACTER_PROMPT.format(name=name, notes=notes or "none")]
     if photo:
-        parts.append(_image_part(photo))
+        parts.append(types.Part.from_bytes(data=photo, mime_type="image/jpeg"))
     character = _ask(client, parts, Character)
     character.name = name  # keep the user's spelling
     return character
@@ -80,8 +93,8 @@ def describe_character(client, name, photo=None, notes=""):
 
 def write_script(client, characters, conversation, screenshots=()):
     roster = "\n".join(f"- {c.name}: {c.appearance} Personality: {c.personality}" for c in characters)
-    parts = [{"type": "text", "text": SCRIPT_PROMPT.format(characters=roster, conversation=conversation or "(see screenshots)")}]
-    parts += [_image_part(s) for s in screenshots]
+    parts = [SCRIPT_PROMPT.format(characters=roster, conversation=conversation or "(see screenshots)")]
+    parts += [types.Part.from_bytes(data=s, mime_type="image/jpeg") for s in screenshots]
     script = _ask(client, parts, Script)
     if len(script.panels) != 4:
         raise ValueError(f"expected 4 panels, model returned {len(script.panels)}")

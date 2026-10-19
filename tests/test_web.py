@@ -1,4 +1,5 @@
 import io
+import time
 
 import pytest
 
@@ -76,3 +77,24 @@ def test_unknown_comics_404(client, path):
 
 def test_webhook_rejects_without_secret(client):
     assert client.post("/telegram/webhook", json={}).status_code == 403
+
+
+def test_relative_data_dir_serves_images(fakes, monkeypatch, tmp_path):
+    # Render sets DATA_DIR=data (relative); images must still be found.
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("DATA_DIR", "data")
+    monkeypatch.setenv("GEMINI_API_KEY", "test")
+    monkeypatch.delenv("TELEGRAM_BOT_TOKEN", raising=False)
+    app = create_app()
+    client = app.test_client()
+    resp = client.post("/api/comics", data={"name": ["Asha"], "conversation": "hi"},
+                       content_type="multipart/form-data")
+    comic_id = resp.json["id"]
+    for _ in range(200):
+        state = client.get(f"/api/comics/{comic_id}").json
+        if state["status"] in ("done", "failed"):
+            break
+        time.sleep(0.05)
+    assert state["status"] == "done"
+    assert client.get(state["panels"][0]["url"]).status_code == 200
+    assert client.get(state["comic_url"]).status_code == 200

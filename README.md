@@ -23,7 +23,7 @@ Turn a chat into a 4-panel comic starring the people in it. Send the conversatio
 | --- | --- | --- |
 | Character sheets | `miracomix/llm.py` `describe_character` | Gemini Flash, structured JSON output (Pydantic schema). Photos are re-encoded to JPEG first. |
 | Script | `llm.write_script` | Exactly 4 panels; each scene is a standalone image prompt that repeats every character's appearance, so they look the same across panels. |
-| Panels | `miracomix/images.py` | FLUX.1 schnell on Cloudflare Workers AI or Pollinations, chosen per comic. One seed per comic. Retries 429/5xx with backoff. |
+| Panels | `miracomix/images.py` | FLUX.1 schnell on Cloudflare Workers AI or Pollinations, chosen per comic. One seed per comic on Pollinations (Cloudflare's FLUX accepts no seed). Retries 429/5xx with backoff. |
 | Dialogue + page | `miracomix/render.py` | Dialogue is drawn with Pillow under each panel: diffusion models misspell text. |
 | Jobs + state | `miracomix/pipeline.py`, `store.py` | Job threads coordinate; model calls run on a separate pool so a job waiting on its panels can't starve it. State lives in SQLite. |
 | Web + API | `miracomix/__init__.py` | Flask: form, JSON API, server-sent events, share page with Open Graph image. |
@@ -61,7 +61,22 @@ Production: serve the app over HTTPS, set `TELEGRAM_WEBHOOK_SECRET` and `PUBLIC_
 .venv/bin/flask --app miracomix telegram set-webhook https://your.domain
 ```
 
-In the chat: paste a conversation, or send a screenshot. Send a photo with a name as its caption to add that person.
+Bots can't read private chats between two people, so the bot gets a conversation one of three ways:
+
+- **Group:** add the bot to a group with the other person and chat as usual. `/comic` draws the last messages (up to 30), each speaker drawn from their profile photo. Turn privacy mode off first (@BotFather → `/setprivacy` → Disable), or the bot only sees commands; re-add the bot to the group after changing it.
+- **Forwards:** forward messages from any chat to the bot, then send `/comic`. People who hide their account from forwards appear by name, without a photo.
+- **Paste:** in a private chat with the bot, paste a conversation as text or send a screenshot. A photo with a name as its caption adds that person as a character.
+
+`/reset` clears collected messages and added characters.
+
+### Deploy on Render
+
+1. Render dashboard → **New → Blueprint** → pick this repo. `render.yaml` defines the service.
+2. Fill in the keys it asks for. `PUBLIC_URL` is the service URL (`https://<name>.onrender.com`); you can set it after the first deploy.
+3. Point Telegram at it once, from your laptop, with the same token and secret in your local `.env`:
+   `.venv/bin/flask --app miracomix telegram set-webhook https://<name>.onrender.com`
+
+Free plan caveats: the service sleeps after 15 idle minutes and takes about a minute to wake (Telegram retries the webhook meanwhile), and its disk is wiped on every restart, so old share links stop working.
 
 ### Production notes
 

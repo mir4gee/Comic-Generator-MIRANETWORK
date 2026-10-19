@@ -23,7 +23,8 @@ MAX_CHARACTERS = 4
 def create_app(pipeline=None, bot=None):
     app = Flask(__name__)
     app.config["MAX_CONTENT_LENGTH"] = 20 * 1024 * 1024
-    data_dir = Path(os.environ.get("DATA_DIR", "data"))
+    # Absolute: send_from_directory resolves relative paths against the package, not the CWD.
+    data_dir = Path(os.environ.get("DATA_DIR", "data")).resolve()
     data_dir.mkdir(parents=True, exist_ok=True)
 
     if pipeline is None:

@@ -76,9 +76,8 @@ class Pipeline:
         panels = [{"status": "drawing", "dialogue": [l.model_dump() for l in p.dialogue]} for p in script.panels]
         self.store.update(comic_id, status="drawing", title=script.title, panels=panels)
 
-        draw = images.PROVIDERS[req.provider]
         seed = random.randrange(1, 2**31)  # one seed per comic keeps the look consistent
-        futures = {self._work.submit(draw, p.scene, seed): i for i, p in enumerate(script.panels)}
+        futures = {self._work.submit(self._draw, req.provider, p.scene, seed): i for i, p in enumerate(script.panels)}
         finished = [None] * 4
         for fut in as_completed(futures):
             i = futures[fut]
@@ -100,3 +99,16 @@ class Pipeline:
         render.compose_page(finished, script.title).save(page_path)
         self.store.update(comic_id, status="done")
         notifier.done(comic_id, page_path, script.title)
+
+    @staticmethod
+    def _draw(provider, scene, seed):
+        """Render with the chosen provider; on any failure (outage, false-positive safety filter)
+        try each other provider once before giving up on the panel."""
+        order = [provider] + [p for p in images.PROVIDERS if p != provider]
+        for i, name in enumerate(order):
+            try:
+                return images.PROVIDERS[name](scene, seed)
+            except images.RenderError as exc:
+                if i == len(order) - 1:
+                    raise
+                log.warning("%s failed a panel (%s); retrying with %s", name, exc, order[i + 1])

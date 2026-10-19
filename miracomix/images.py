@@ -33,12 +33,13 @@ def _request(method, url, **kwargs):
 
 
 def cloudflare(prompt, seed):
+    # Workers AI's FLUX schema rejects unknown fields, seed included, so the seed is unused here.
     account = os.environ["CLOUDFLARE_ACCOUNT_ID"]
     resp = _request(
         "POST",
         f"https://api.cloudflare.com/client/v4/accounts/{account}/ai/run/@cf/black-forest-labs/flux-1-schnell",
         headers={"Authorization": f"Bearer {os.environ['CLOUDFLARE_API_TOKEN']}"},
-        json={"prompt": (STYLE + prompt)[:2048], "steps": 4, "seed": seed},
+        json={"prompt": (STYLE + prompt)[:2048], "steps": 4},
     )
     body = resp.json()
     image = body.get("result", body).get("image")

@@ -56,7 +56,7 @@ def test_text_message_makes_comic_with_profile_photo(bot, pipeline, monkeypatch)
 def test_one_comic_at_a_time(bot, pipeline):
     pipeline.store.create("busybusy", "telegram", chat_id=7)
     bot.handle_update(text_update("hi there"))
-    assert bot.sent[-1] == ("sendMessage", "Still drawing your last comic. One at a time!")
+    assert bot.sent[-1] == ("sendMessage", "Still drawing the last comic. One at a time!")
 
 
 def test_captioned_photo_adds_character(bot):
@@ -69,9 +69,9 @@ def test_captioned_photo_adds_character(bot):
 
 def test_help_and_reset(bot):
     bot.handle_update(text_update("/start"))
-    assert "4-panel comic" in bot.sent[-1][1]
+    assert "4-panel comics" in bot.sent[-1][1]
     bot.handle_update(text_update("/reset"))
-    assert bot.sent[-1][1] == "Added characters cleared."
+    assert bot.sent[-1][1] == "Cleared collected messages and added characters."
 
 
 def test_webhook_checks_secret_and_dispatches(fakes, pipeline, monkeypatch, tmp_path):
@@ -84,3 +84,60 @@ def test_webhook_checks_secret_and_dispatches(fakes, pipeline, monkeypatch, tmp_
                        headers={"X-Telegram-Bot-Api-Secret-Token": "wrong"}).status_code == 403
     assert client.post("/telegram/webhook", json=text_update("/start"),
                        headers={"X-Telegram-Bot-Api-Secret-Token": "s3cret"}).status_code == 200
+
+
+def group_msg(text, user_id, name, chat_id=-100):
+    return {"update_id": 3, "message": {"chat": {"id": chat_id, "type": "supergroup"},
+                                        "from": {"id": user_id, "first_name": name}, "text": text}}
+
+
+def speakers_seen(monkeypatch):
+    from miracomix import llm
+    seen = []
+    real = llm.describe_character
+    monkeypatch.setattr(llm, "describe_character",
+                        lambda c, name, photo=None, notes="": seen.append((name, photo is not None)) or real(c, name, photo, notes))
+    return seen
+
+
+def test_group_chat_only_draws_on_comic_command(bot, pipeline, monkeypatch):
+    seen = speakers_seen(monkeypatch)
+    bot.handle_update(group_msg("did you eat my pizza?", 1, "Asha"))
+    bot.handle_update(group_msg("define 'your'", 2, "Ravi"))
+    bot.handle_update(group_msg("it had my name on it", 1, "Asha"))
+    assert bot.sent == []  # ordinary group messages never trigger a comic
+    assert pipeline.store._db.execute("SELECT COUNT(*) FROM comics").fetchone()[0] == 0
+
+    bot.handle_update(group_msg("/comic@MiraComixBot", 1, "Asha"))
+    row = pipeline.store._db.execute("SELECT id FROM comics").fetchone()
+    assert wait_for(pipeline.store, row["id"])["status"] == "done"
+    assert seen == [("Asha", True), ("Ravi", True)]
+    assert bot._history.get(-100) is None  # buffer cleared once the comic starts
+
+
+def test_group_comic_needs_messages(bot):
+    bot.handle_update(group_msg("/comic", 1, "Asha"))
+    assert "I need a few messages first" in bot.sent[-1][1]
+
+
+def test_forwarded_messages_become_a_conversation(bot, pipeline, monkeypatch):
+    seen = speakers_seen(monkeypatch)
+    from miracomix import llm
+    convo = []
+    real_script = llm.write_script
+    monkeypatch.setattr(llm, "write_script", lambda c, chars, conversation, screenshots=(): convo.append(conversation) or real_script(c, chars, conversation))
+
+    def fwd(text, origin):
+        return {"update_id": 4, "message": {"chat": {"id": 7, "type": "private"}, "from": {"id": 42, "first_name": "Kush"},
+                                            "text": text, "forward_origin": origin}}
+
+    bot.handle_update(fwd("you up?", {"type": "user", "sender_user": {"id": 9, "first_name": "Priya"}}))
+    assert "Collecting forwarded messages" in bot.sent[-1][1]
+    bot.handle_update(fwd("no", {"type": "hidden_user", "sender_user_name": "Arjun"}))
+    assert len(bot.sent) == 1  # only the first forward is acknowledged
+    bot.handle_update(text_update("/comic"))
+
+    row = pipeline.store._db.execute("SELECT id FROM comics").fetchone()
+    assert wait_for(pipeline.store, row["id"])["status"] == "done"
+    assert seen == [("Priya", True), ("Arjun", False)]  # hidden users have no photo to fetch
+    assert convo == ["Priya: you up?\nArjun: no"]
