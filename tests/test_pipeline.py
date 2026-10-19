@@ -35,6 +35,26 @@ def test_makes_four_panels_and_a_page(fakes, pipeline):
     assert len(fakes) == 4
 
 
+def test_refused_panel_falls_back_to_other_provider(fakes, pipeline, monkeypatch):
+    used = []
+
+    def picky(prompt, seed):
+        if prompt == "scene 2":
+            raise images.RenderError("HTTP 400: Input prompt contains NSFW content.")
+        return png_bytes()
+
+    def backup(prompt, seed):
+        used.append(prompt)
+        return png_bytes("green")
+
+    monkeypatch.setitem(images.PROVIDERS, "cloudflare", picky)
+    monkeypatch.setitem(images.PROVIDERS, "pollinations", backup)
+    pipeline.store.create("abcdefgh", "web")
+    pipeline.submit("abcdefgh", ComicRequest([CharacterInput("Asha")], "Asha: hi", provider="cloudflare"))
+    assert wait_for(pipeline.store, "abcdefgh")["status"] == "done"
+    assert used == ["scene 2"]
+
+
 def test_a_failed_panel_fails_the_comic(fakes, pipeline, monkeypatch):
     def flaky(prompt, seed):
         if prompt == "scene 2":
@@ -42,6 +62,7 @@ def test_a_failed_panel_fails_the_comic(fakes, pipeline, monkeypatch):
         return png_bytes()
 
     monkeypatch.setitem(images.PROVIDERS, "cloudflare", flaky)
+    monkeypatch.setitem(images.PROVIDERS, "pollinations", flaky)
     rec = Recorder()
     pipeline.store.create("abcdefgh", "web")
     pipeline.submit("abcdefgh", ComicRequest([CharacterInput("Asha")], "Asha: hi", provider="cloudflare"), rec)
