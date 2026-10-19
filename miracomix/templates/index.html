@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block main %}
+<h1>Turn a chat into a comic</h1>
+<p class="lead">Add the people in the conversation (a photo makes them look like themselves), paste the chat or upload a screenshot, and watch four panels draw themselves.</p>
+
+<form id="comic-form" class="card">
+  <fieldset>
+    <legend>Characters</legend>
+    <div id="characters">
+      {% for n in range(2) %}
+      <div class="character">
+        <label>Name <input name="name" maxlength="40" {% if n == 0 %}required{% endif %} placeholder="e.g. {{ ['Asha', 'Ravi'][n] }}"></label>
+        <label>Photo (optional) <input name="photo" type="file" accept="image/*"></label>
+      </div>
+      {% endfor %}
+    </div>
+    <button type="button" id="add-character" class="secondary">Add character</button>
+  </fieldset>
+
+  <label>Conversation
+    <textarea name="conversation" rows="6" maxlength="4000" placeholder="Asha: Did you eat my pizza?&#10;Ravi: Define 'your'."></textarea>
+  </label>
+  <label>Or chat screenshots <input name="screenshot" type="file" accept="image/*" multiple></label>
+
+  <label>Image engine
+    <select name="provider">
+      {% for p in providers %}<option value="{{ p }}" {% if p == default %}selected{% endif %}>{{ p|capitalize }} (FLUX)</option>{% endfor %}
+    </select>
+  </label>
+
+  <p id="form-error" class="error" role="alert" hidden></p>
+  <button type="submit">Make my comic</button>
+</form>
+
+<script>
+const form = document.getElementById("comic-form");
+const error = document.getElementById("form-error");
+document.getElementById("add-character").addEventListener("click", () => {
+  const list = document.getElementById("characters");
+  if (list.children.length >= 4) return;
+  const row = list.children[1].cloneNode(true);
+  row.querySelectorAll("input").forEach(i => { i.value = ""; });
+  list.appendChild(row);
+});
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  error.hidden = true;
+  const button = form.querySelector("button[type=submit]");
+  button.disabled = true;
+  button.textContent = "Starting...";
+  try {
+    const resp = await fetch("{{ url_for('create_comic') }}", { method: "POST", body: new FormData(form) });
+    const body = await resp.json();
+    if (!resp.ok) throw new Error(body.error || "Something went wrong.");
+    location.href = body.url;
+  } catch (err) {
+    error.textContent = err.message;
+    error.hidden = false;
+    button.disabled = false;
+    button.textContent = "Make my comic";
+  }
+});
+</script>
+{% endblock %}

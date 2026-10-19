@@ -1,158 +1,83 @@
-# Comic Memory Generator 🎨📱
+# MiraComix
 
-## Problem Statement
+Turn a chat into a 4-panel comic starring the people in it. Send the conversation as text or a screenshot, add profile photos, and watch the panels draw themselves, on the web or in Telegram.
 
-In the fast-paced digital communication era, hilarious, spontaneous moments often get lost in the endless scroll of messaging apps. Our Comic Memory Generator transforms those ephemeral, funny conversations into lasting, artistic memories.
-
-## 🚀 Vision
-
-### Preserving Digital Humor
-- Capture fleeting, comedic interactions
-- Transform text and images into timeless comic strips
-- Create shareable, memorable visual narratives
-
-## Technology Ecosystem
-
-### Core Technologies
-- **Frontend**: HTML5, Tailwind CSS, JavaScript
-- **Backend**: Python (FastAPI)
-- **AI Technologies**:
-  - Computer Vision: OpenCV, Dlib
-  - Text Extraction: Google Vision API
-  - Character Analysis: DeepFace
-  - Prompt Generation: Claude AI, Mira Flow
-  - Image Generation: FLUX (Black Forest Labs)
-
-## Detailed Workflow
-
-### 1. Moment Capture 📸
-- Screenshot messaging app conversation
-- Upload images of conversation participants
-
-### 2. Intelligent Text Extraction 🔍
-- Google Vision API analyzes screenshot
-- Extracts conversation text
-- Identifies speakers and message context
-
-### 3. Character Deep Analysis 👤
-- Advanced computer vision techniques
-- Analyze facial characteristics:
-  - Emotion
-  - Age
-  - Gender
-  - Physical attributes
-  - Skin tone
-  - Facial structure
-  - and around total of 68 attributes
-#### 🧠 Dlib Landmark Visualization (68 points)
-![Dlib 68 Landmarks](./Dlib.jpeg)
-### 4. Creative Prompt Generation 💡
-- Claude AI + Mira Flow synthesize:
-  - Extracted text
-  - Character details
-  - User-defined situational context
-- Generate narrative comic prompt
-
-### 5. Comic Image Rendering 🖼️
-- FLUX model creates comic-style image
-- Transforms text into visual storytelling
-
-## App Outputs
-
-### Output 1: Example of Generated Result
-![Generated Output 1](https://github.com/mir4gee/Comic-Generator-MIRANETWORK/blob/main/WhatsApp%20Image%202025-01-25%20at%209.16.22%20PM.jpeg)
-
-### Output 2: Another Example of Generated Result
-![Generated Output 2](https://github.com/mir4gee/Comic-Generator-MIRANETWORK/blob/main/WhatsApp%20Image%202025-01-25%20at%209.28.36%20PM.jpeg)
-
-### Output 3: Another Example of Generated Result
-![Generated Output 3](https://github.com/mir4gee/Comic-Generator-MIRANETWORK/blob/main/WhatsApp%20Image%202025-07-20%20at%2014.24.53_2ebcd21d.jpg)
-
-## Use Cases
-
-### 1. Memory Preservation
-- Convert casual chats into artistic keepsakes
-- Immortalize spontaneous humor
-- Create personalized comic memories
-
-### 2. Social Sharing
-- Generate unique, shareable content
-- Transform digital interactions into art
-- Surprise friends with creative representations
-
-### 3. Personal Archiving
-- Build a visual diary of memorable conversations
-- Track communication history creatively
-- Preserve emotional nuances of interactions
-
-## Installation & Setup
-
-### Prerequisites
-- Python 3.8+
-- API Keys:
-  - Google Vision
-  - Hugging Face
-  - Mira Flow
-- Modern web browser
-
-### Local Development
-
-```bash
-# Clone Repository
-git clone https://github.com/yourusername/comic-memory-generator.git
-cd comic-memory-generator
-
-# Install Dependencies
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-
-# Configure API Keys
-cp config.example.json config.json
-# Edit config.json with your API credentials
-
-# Run Backend
-uvicorn main:app --reload
-
-# Open Frontend
-# Launch index.html in browser
+```
+ web form / Telegram bot
+          |
+          v
+ Flask app ── POST /api/comics ──> job queue (ThreadPoolExecutor)
+          |                                |
+          |           1. Gemini: one character sheet per person (reads their photo)
+          |           2. Gemini: 4-panel script (scenes + dialogue) as JSON
+          |           3. FLUX: 4 panels rendered in parallel (Cloudflare or Pollinations)
+          |           4. Pillow: dialogue strip per panel, 2x2 comic page
+          |                                |
+          <── SSE /api/comics/<id>/events ─┘  (web: panels appear as they finish)
+              Telegram: each panel is sent as it finishes, then the page + share link
 ```
 
-## Example Workflow
+## How it works
 
-1. **Scenario**: Hilarious WhatsApp conversation about a disastrous dinner date
-2. **User Actions**:
-   - Screenshot conversation
-   - Upload participant images
-   - Click "Generate Comic"
-3. **Result**: 
-   - Personalized 4-panel comic strip
-   - Captures conversation's humor
-   - Unique artistic representation
+| Step | Code | Notes |
+| --- | --- | --- |
+| Character sheets | `miracomix/llm.py` `describe_character` | Gemini Flash, structured JSON output (Pydantic schema). Photos are re-encoded to JPEG first. |
+| Script | `llm.write_script` | Exactly 4 panels; each scene is a standalone image prompt that repeats every character's appearance, so they look the same across panels. |
+| Panels | `miracomix/images.py` | FLUX.1 schnell on Cloudflare Workers AI or Pollinations, chosen per comic. One seed per comic. Retries 429/5xx with backoff. |
+| Dialogue + page | `miracomix/render.py` | Dialogue is drawn with Pillow under each panel: diffusion models misspell text. |
+| Jobs + state | `miracomix/pipeline.py`, `store.py` | Job threads coordinate; model calls run on a separate pool so a job waiting on its panels can't starve it. State lives in SQLite. |
+| Web + API | `miracomix/__init__.py` | Flask: form, JSON API, server-sent events, share page with Open Graph image. |
+| Telegram | `miracomix/telegram.py` | Webhook (secret-token checked) or long polling for local dev. One active comic per chat. |
 
-## Contributing
+## Run it
 
-Interested in enhancing Comic Memory Generator?
-- Fork repository
-- Create feature branch
-- Submit pull request
-- Follow `CONTRIBUTING.md` guidelines
+```bash
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+cp .env.example .env        # fill in the keys you have
+.venv/bin/flask --app miracomix run
+```
 
-## Future Roadmap 🗺️
-- Multi-language support
-- Advanced style customization
-- Social media integration
-- Machine learning enhanced humor detection
+Open http://127.0.0.1:5000.
 
-## License
-MIT License
+Keys (all have free tiers):
 
-## Acknowledgments
-- Black Forest Labs
-- Anthropic
-- Google Cloud Vision
-- Mira Flow
+- `GEMINI_API_KEY`: [Google AI Studio](https://aistudio.google.com/apikey).
+- Images, pick one or both (`IMAGE_PROVIDER` sets the default, the form can switch):
+  - Cloudflare: `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN` with Workers AI permission.
+  - Pollinations: `POLLINATIONS_KEY` from enter.pollinations.ai. Without a key it uses the free legacy endpoint, which may serve a different model than FLUX.
+- Telegram (optional): `TELEGRAM_BOT_TOKEN` from @BotFather.
 
----
+### Telegram
 
-**Transform Moments into Memories, One Comic at a Time** 🌟
+Local development, no public URL needed:
+
+```bash
+.venv/bin/flask --app miracomix telegram poll
+```
+
+Production: serve the app over HTTPS, set `TELEGRAM_WEBHOOK_SECRET` and `PUBLIC_URL`, then
+
+```bash
+.venv/bin/flask --app miracomix telegram set-webhook https://your.domain
+```
+
+In the chat: paste a conversation, or send a screenshot. Send a photo with a name as its caption to add that person.
+
+### Production notes
+
+Run one process with threads, since the job queue lives in-process: `gunicorn -w 1 --threads 16 'miracomix:create_app()'`. To scale past one process, move jobs to a real queue (Redis + RQ/Celery) and files to object storage.
+
+## Tests
+
+```bash
+.venv/bin/python -m pytest -q
+```
+
+Gemini, FLUX and the Telegram API are faked, so the suite runs offline.
+
+## History
+
+- **Jan 2025, prototype** (team project at Geek Gazette, IIT Roorkee): a Mira Flows compound flow (three chained LLM calls: one 31-attribute profile per character, then a comic prompt), dlib/DeepFace face analysis, OCR of chat screenshots, and a standalone FLUX test. The pieces were never wired together, and Mira's flow API has since gone offline.
+- **Oct 2026, rebuild**: the same idea, end to end. Gemini replaces the Mira flow and the face-analysis stack, FLUX is wired in through hosted APIs, and there is a Flask app, a Telegram bot, live preview and share links.
+
+The prototype's code is in the git history before the rebuild commit.
