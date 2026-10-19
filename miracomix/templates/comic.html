@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}{{ comic.title or "Your comic" }} · MiraComix{% endblock %}
+{% block head %}
+  <meta property="og:title" content="{{ comic.title or 'A MiraComix comic' }}">
+  {% if comic.comic_url %}<meta property="og:image" content="{{ request.url_root.rstrip('/') }}{{ comic.comic_url }}">{% endif %}
+{% endblock %}
+{% block main %}
+<h1 id="title">{{ comic.title or "Writing your comic..." }}</h1>
+<p id="status" class="lead" aria-live="polite"></p>
+
+<div id="panels" class="panels">
+  {% for i in range(4) %}<div class="panel" data-index="{{ i }}"><span>Panel {{ i + 1 }}</span></div>{% endfor %}
+</div>
+
+<div id="share" class="share" hidden>
+  <a id="download" class="button" download="comic.png">Download</a>
+  <button type="button" id="copy" class="secondary">Copy link</button>
+  <a id="telegram" class="button secondary" target="_blank" rel="noopener">Share on Telegram</a>
+</div>
+
+<script>
+const initial = {{ comic|tojson }};
+const labels = { queued: "Queued...", writing: "Reading the chat and writing the script...", drawing: "Drawing panels...", done: "", failed: "" };
+
+function show(state) {
+  document.getElementById("title").textContent = state.title || "Writing your comic...";
+  document.getElementById("status").textContent = state.error || labels[state.status];
+  state.panels.forEach((panel, i) => {
+    const box = document.querySelector(`.panel[data-index="${i}"]`);
+    if (panel.url && !box.querySelector("img")) {
+      const img = new Image();
+      img.src = panel.url;
+      img.alt = `Panel ${i + 1}`;
+      box.replaceChildren(img);
+    } else if (panel.status === "failed") {
+      box.replaceChildren(Object.assign(document.createElement("span"), { textContent: "This panel failed" }));
+    }
+  });
+  if (state.comic_url) {
+    const link = location.href;
+    document.getElementById("download").href = state.comic_url;
+    document.getElementById("telegram").href = "https://t.me/share/url?url=" + encodeURIComponent(link) + "&text=" + encodeURIComponent(state.title || "");
+    document.getElementById("share").hidden = false;
+  }
+}
+
+show(initial);
+if (!["done", "failed"].includes(initial.status)) {
+  const events = new EventSource("{{ url_for('comic_events', comic_id=comic.id) }}");
+  events.onmessage = (msg) => {
+    const state = JSON.parse(msg.data);
+    show(state);
+    if (["done", "failed"].includes(state.status)) events.close();
+  };
+}
+document.getElementById("copy").addEventListener("click", async (event) => {
+  await navigator.clipboard.writeText(location.href);
+  event.target.textContent = "Copied";
+});
+</script>
+{% endblock %}
