@@ -63,6 +63,15 @@ Production: serve the app over HTTPS, set `TELEGRAM_WEBHOOK_SECRET` and `PUBLIC_
 
 In the chat: paste a conversation, or send a screenshot. Send a photo with a name as its caption to add that person.
 
+### Deploy on Render
+
+1. Render dashboard → **New → Blueprint** → pick this repo. `render.yaml` defines the service.
+2. Fill in the keys it asks for. `PUBLIC_URL` is the service URL (`https://<name>.onrender.com`); you can set it after the first deploy.
+3. Point Telegram at it once, from your laptop, with the same token and secret in your local `.env`:
+   `.venv/bin/flask --app miracomix telegram set-webhook https://<name>.onrender.com`
+
+Free plan caveats: the service sleeps after 15 idle minutes and takes about a minute to wake (Telegram retries the webhook meanwhile), and its disk is wiped on every restart, so old share links stop working.
+
 ### Production notes
 
 Run one process with threads, since the job queue lives in-process: `gunicorn -w 1 --threads 16 'miracomix:create_app()'`. To scale past one process, move jobs to a real queue (Redis + RQ/Celery) and files to object storage.

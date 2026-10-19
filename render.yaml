@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: miracomix
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    # One process: the job queue lives in memory. Threads serve SSE streams and webhooks.
+    startCommand: gunicorn -w 1 --threads 16 -b 0.0.0.0:$PORT 'miracomix:create_app()'
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: IMAGE_PROVIDER
+        value: cloudflare
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: CLOUDFLARE_ACCOUNT_ID
+        sync: false
+      - key: CLOUDFLARE_API_TOKEN
+        sync: false
+      - key: POLLINATIONS_KEY
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      # Letters, digits, _ and - only (Telegram's rule), e.g. python3 -c "import secrets; print(secrets.token_urlsafe(32))"
+      - key: TELEGRAM_WEBHOOK_SECRET
+        sync: false
+      # Your Render URL, e.g. https://miracomix.onrender.com (used in share links)
+      - key: PUBLIC_URL
+        sync: false
