@@ -23,7 +23,7 @@ Turn a chat into a 4-panel comic starring the people in it. Send the conversatio
 | --- | --- | --- |
 | Character sheets | `miracomix/llm.py` `describe_character` | Gemini Flash, structured JSON output (Pydantic schema). Photos are re-encoded to JPEG first. |
 | Script | `llm.write_script` | Exactly 4 panels; each scene is a standalone image prompt that repeats every character's appearance, so they look the same across panels. |
-| Panels | `miracomix/images.py` | FLUX.1 schnell on Cloudflare Workers AI or Pollinations, chosen per comic. One seed per comic. Retries 429/5xx with backoff. |
+| Panels | `miracomix/images.py` | FLUX.1 schnell on Cloudflare Workers AI or Pollinations, chosen per comic. One seed per comic on Pollinations (Cloudflare's FLUX accepts no seed). Retries 429/5xx with backoff. |
 | Dialogue + page | `miracomix/render.py` | Dialogue is drawn with Pillow under each panel: diffusion models misspell text. |
 | Jobs + state | `miracomix/pipeline.py`, `store.py` | Job threads coordinate; model calls run on a separate pool so a job waiting on its panels can't starve it. State lives in SQLite. |
 | Web + API | `miracomix/__init__.py` | Flask: form, JSON API, server-sent events, share page with Open Graph image. |
