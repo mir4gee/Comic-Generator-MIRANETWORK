@@ -61,7 +61,13 @@ Production: serve the app over HTTPS, set `TELEGRAM_WEBHOOK_SECRET` and `PUBLIC_
 .venv/bin/flask --app miracomix telegram set-webhook https://your.domain
 ```
 
-In the chat: paste a conversation, or send a screenshot. Send a photo with a name as its caption to add that person.
+Bots can't read private chats between two people, so the bot gets a conversation one of three ways:
+
+- **Group:** add the bot to a group with the other person and chat as usual. `/comic` draws the last messages (up to 30), each speaker drawn from their profile photo. Turn privacy mode off first (@BotFather → `/setprivacy` → Disable), or the bot only sees commands; re-add the bot to the group after changing it.
+- **Forwards:** forward messages from any chat to the bot, then send `/comic`. People who hide their account from forwards appear by name, without a photo.
+- **Paste:** in a private chat with the bot, paste a conversation as text or send a screenshot. A photo with a name as its caption adds that person as a character.
+
+`/reset` clears collected messages and added characters.
 
 ### Deploy on Render
 
