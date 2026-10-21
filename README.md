@@ -96,3 +96,35 @@ Gemini, FLUX and the Telegram API are faked, so the suite runs offline.
 - **Oct 2026, rebuild**: the same idea, end to end. Gemini replaces the Mira flow and the face-analysis stack, FLUX is wired in through hosted APIs, and there is a Flask app, a Telegram bot, live preview and share links.
 
 The prototype's code is in the git history before the rebuild commit.
+
+### Prototype outputs (2025)
+
+| | | |
+|---|---|---|
+| ![Prototype output 1](docs/prototype-output-1.jpeg) | ![Prototype output 2](docs/prototype-output-2.jpeg) | ![Prototype output 3](docs/prototype-output-3.jpg) |
+
+### Face landmarks (2025 prototype)
+
+The prototype described each person from their photo with dlib's 68-point facial landmark model, then turned the points into attributes for the character prompt.
+
+![dlib 68 facial landmarks](docs/dlib-68-landmarks.jpg)
+
+| Points (as numbered in the image) | Region | Attributes derived |
+|---|---|---|
+| 1-17 | Jaw line | jaw width, chin type, face shape |
+| 18-27 | Eyebrows | eyebrow position and shape, forehead height |
+| 28-36 | Nose | nose length and width |
+| 37-48 | Eyes | eye distance, size and shape |
+| 49-68 | Mouth | mouth width, lip fullness, teeth visible |
+
+Examples of the measurements (dlib arrays are 0-based, so image point 1 is `landmarks[0]`):
+
+- Face shape from ratios: jaw width `|p1 - p17|`, face height `|p9 - p28|`, cheekbone width `|p2 - p16|`. Height over 1.5x the jaw width means oval; cheekbones over 0.8x the height means round; jaw over 1.2x the cheekbones means square; otherwise heart-shaped.
+- Eye spacing `|p37 - p46|`, nose length `|p28 - p34|`, mouth width `|p49 - p55|`.
+- Teeth visible when the inner lips are apart: `|p63 - p67|` above a threshold.
+
+**How it could be used in the current pipeline:** as an optional, deterministic step before Gemini. Measure the photo, pass the ratios into the character prompt ("narrow oval face, wide-set eyes"), and let Gemini write the description. That makes faces more consistent from photo to photo.
+
+Two fixes the prototype needed:
+- **Thresholds in raw pixels:** the prototype compared raw pixel distances against fixed thresholds (for example, "eye distance > 100 px means large eyes"), so the result depended on photo resolution. Divide every distance by the face width first.
+- **Weight on the free plan:** dlib needs a C++ build and a ~100 MB model file, too heavy for Render's free plan (512 MB RAM). MediaPipe Face Mesh is a lighter option: 478 points, and it also runs in the browser.
